@@ -1,0 +1,2 @@
+#define GITVIEW_API __declspec(dllexport)
+#define GITVIEW_API __declspec(dllimport)

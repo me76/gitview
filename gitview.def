@@ -1,0 +1,7 @@
+EXPORTS
+FsInitW
+FsSetDefaultParams
+FsFindFirstW
+FsFindNextW
+FsFindClose
+FsGetFileW
