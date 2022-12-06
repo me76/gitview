@@ -67,6 +67,7 @@ private:
 	struct Settings
 	{
 		std::wstring mLogLocation;
+		std::string mFallbackLogPath;
 		Git::Settings mGitSettings;
 	};
 

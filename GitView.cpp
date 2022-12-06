@@ -17,8 +17,14 @@
 
 using namespace std;
 
+#pragma warning(disable:4996)
+
 GitView::GitView()
 {
+	if(const char* homePath = getenv("USERPROFILE"))
+	{
+		mSettings.mFallbackLogPath.assign(homePath).append("\\gitview.log");
+	}
 }
 
 void GitView::init(int pluginNo,
@@ -43,7 +49,6 @@ bool GitView::loadSettings(const char defaultSettingsPath[MAX_PATH])
 bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
 {
 	//look for 'plugins/gitview.json' file first, then for 'gitview.json'
-	//use 'defaultSettingsPath' as fallback option
 	const char dirSlash = '\\';
 	size_t lastSlashPos = MAX_PATH;
 	for (size_t i = 0; i < MAX_PATH; ++i)
@@ -54,7 +59,8 @@ bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
 
 	if (MAX_PATH == lastSlashPos)
 	{
-		log() << L"invalid ini location - cannot read the settings";
+		ofstream fallbackLog(mSettings.mFallbackLogPath, ios_base::out | ios_base::app);
+		fallbackLog << "invalid ini location " << defaultSettingsPath << " - cannot read the settings" << endl;
 		return false;
 	}
 
@@ -72,7 +78,8 @@ bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
 		settingsFile.open(myIniPath);
 		if (!settingsFile.is_open())
 		{
-			log() << L"Settings file does not exist or is not accessible - cannot initialize gitview.";
+			ofstream fallbackLog(mSettings.mFallbackLogPath, ios_base::out | ios_base::app);
+			fallbackLog << "Settings file " << myIniPath << " does not exist or is not accessible - cannot initialize gitview." << endl;
 			return false;
 		}
 	}
@@ -89,18 +96,29 @@ bool GitView::readSettings()
 	try {
 		pt::json_parser::read_json(mSettingsFilePath, settings);
 	}
-	catch(...) { return false; }
+	catch(std::exception& e) {
+		ofstream fallbackLog(mSettings.mFallbackLogPath, ios_base::out | ios_base::app);
+		fallbackLog << "GitView::readSettings: read_json failed: " << e.what() << endl;
+		return false;
+	}
 
+	bool settingsRead = false;
 	try
 	{
 		mSettings.mLogLocation = settings.get<wstring>(L"debug.logLocation", L"");
-		if(!mSettings.mLogLocation.empty())
+		if(!mSettings.mLogLocation.empty()
+		   && (logFile.open(mSettings.mLogLocation, ios_base::out | ios_base::app), logFile.is_open()))
 		{
-			logFile.open(mSettings.mLogLocation, ios_base::out | ios_base::app);
-			log() << L"\n\t=== starting gitview plugin ===\n";
+			settingsRead = true;
 		}
 	}
 	catch(...) { }
+
+	if(!settingsRead)
+	{
+		ofstream fallbackLog(mSettings.mFallbackLogPath, ios_base::out | ios_base::app);
+		fallbackLog << "GitView::readSettings: failed to load settings from " << (const char*) mSettings.mLogLocation.c_str() << endl;
+	}
 
 	try
 	{
