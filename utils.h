@@ -7,9 +7,13 @@
 
 std::wstring str2wstr(const std::string& s);
 
-void assignFileName(char dest[MAX_PATH], const std::string& src);
-void assignFileName(wchar_t dest[MAX_PATH], const std::string& src);
-void assignFileName(wchar_t dest[MAX_PATH], const std::wstring& src);
+template<typename TSrcChar, typename TDestChar>
+void assignFileName(TDestChar dest[MAX_PATH], const std::basic_string<TSrcChar>& src)
+{
+	size_t resultSize = min(src.size(), MAX_PATH - 1);
+	copy_n(src.begin(), resultSize, dest);
+	dest[resultSize + 1] = 0;
+}
 
 void getPathHeadTail(const wchar_t* path, std::wstring& head, const wchar_t*& tail);
 

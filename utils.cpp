@@ -13,27 +13,6 @@ wstring str2wstr(const std::string& s)
 	return result;
 }
 
-void assignFileName(char dest[MAX_PATH], const string& src)
-{
-	size_t resultSize = min(src.size(), MAX_PATH);
-	copy_n(src.begin(), resultSize, dest);
-	dest[MAX_PATH-1] = 0;
-}
-
-void assignFileName(wchar_t dest[MAX_PATH], const string& src)
-{
-	size_t resultSize = min(src.size(), MAX_PATH);
-	copy_n(src.begin(), resultSize, dest);
-	dest[MAX_PATH - 1] = 0;
-}
-
-void assignFileName(wchar_t dest[MAX_PATH], const wstring& src)
-{
-	size_t resultSize = min(src.size(), MAX_PATH);
-	copy_n(src.begin(), resultSize, dest);
-	dest[MAX_PATH - 1] = 0;
-}
-
 void getPathHeadTail(const wchar_t* path, std::wstring& head, const wchar_t*& tail)
 {
 	head.clear();
