@@ -19,7 +19,6 @@ typedef std::map<GitRef::Type, GitRef> GitRefs;
 
 struct Repo
 {
-	std::wstring url;
 	std::wstring workingDir;
 	GitRefs refs; //{branches, tags, ...}
 };
@@ -40,7 +39,7 @@ struct ItemKey
 class Repositories
 {
 public:
-	void add(const std::wstring& name, const std::wstring& url, const std::wstring& workingDir);
+	void add(const std::wstring& name, const std::wstring& workingDir);
 
 	const NamedRepos& repos() const { return mRepos; }
 

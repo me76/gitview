@@ -83,7 +83,6 @@ private:
 
 public:
 	HANDLE mModule = NULL;
-	HWND mTCWindow = NULL;
 
 	Repositories mRepos;
 

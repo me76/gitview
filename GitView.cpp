@@ -144,7 +144,6 @@ bool GitView::readSettings()
 			try
 			{
 				mRepos.add(repo.get<wstring>(L"name"),
-				           repo.get<wstring>(L"url"),
 				           repo.get<wstring>(L"workingDir"));
 			}
 			catch(const pt::ptree_bad_path& pathError)

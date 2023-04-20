@@ -41,10 +41,9 @@ bool ItemKey::empty() const
 	return repoName.empty();
 }
 
-void Repositories::add(const std::wstring& name, const std::wstring& url, const std::wstring& workingDir)
+void Repositories::add(const std::wstring& name, const std::wstring& workingDir)
 {
 	Repo& r = mRepos[name];
-	r.url = url;
 	r.workingDir = workingDir;
 }
 
