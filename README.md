@@ -19,7 +19,6 @@ Format:
 		"repos": [
 			{
 				"name": "name to appear in TC",
-				"url": "git repo URL",
 				"workingDir": "local working dir"
 			},
 			...
