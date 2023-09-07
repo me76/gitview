@@ -28,11 +28,10 @@ GitView::GitView()
 }
 
 void GitView::init(int pluginNo,
-                   tProgressProcW progressFunc, tLogProcW logFunc, tRequestProcW requestFunc)
+                   tProgressProcW progressFunc, tLogProcW, tRequestProcW requestFunc)
 {
 	mPluginNo = pluginNo;
 	mProgressFunc = progressFunc;
-	mLogFunc = logFunc;
 	mRequestFunc = requestFunc;
 }
 
@@ -60,16 +59,17 @@ bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
 	if (MAX_PATH == lastSlashPos)
 	{
 		ofstream fallbackLog(mSettings.mFallbackLogPath, ios_base::out | ios_base::app);
-		fallbackLog << "invalid ini location " << defaultSettingsPath << " - cannot read the settings" << endl;
+		fallbackLog << "invalid ini location '" << defaultSettingsPath << "' - cannot read the settings" << endl;
 		return false;
 	}
 
-	char myIniPath[MAX_PATH + 50];
-	char* iniFilePath = myIniPath;
-	copy(defaultSettingsPath, defaultSettingsPath + lastSlashPos + 1, myIniPath);
+	char settingsSubpath[] = "plugins\\gitview.json";
+	constexpr size_t subpathLen = DIM( settingsSubpath );
 
-	char subpath[] = "plugins\\gitview.json";
-	copy_n(subpath, DIM(subpath), myIniPath + lastSlashPos + 1);
+	char myIniPath[MAX_PATH + subpathLen];
+	copy( defaultSettingsPath, defaultSettingsPath + lastSlashPos + 1, myIniPath );
+	copy_n( settingsSubpath, subpathLen, myIniPath + lastSlashPos + 1 );
+
 	ifstream settingsFile(myIniPath);
 	if (!settingsFile.is_open())
 	{
@@ -173,7 +173,9 @@ bool GitView::readSettings()
 		log() << L"ERROR reading settings";
 	}
 
-	log() << L"Settings:"
+	wstring wSettingsFile; wSettingsFile.reserve(mSettingsFilePath.size());
+	copy(mSettingsFilePath.cbegin(), mSettingsFilePath.cend(), back_inserter(wSettingsFile));
+	log() << L"Settings (" << wSettingsFile << "):"
 	      << L"\n  git.path: " << mSettings.mGitSettings.mGitPath
 	      << L"\n  git.timeout: " << mSettings.mGitSettings.mTimeout
 			<< L"\n  git.showCurBranch: " << boolalpha << mSettings.mGitSettings.mShowCurrentBranch;

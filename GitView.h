@@ -73,7 +73,6 @@ private:
 
 	int mPluginNo = 0;
 	tProgressProcW mProgressFunc = 0;
-	tLogProcW mLogFunc = 0;
 	tRequestProcW mRequestFunc = 0;
 
 	std::wofstream logFile;

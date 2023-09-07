@@ -25,6 +25,6 @@ Format:
 		],
 
 		"debug": {
-			"logLocation": "optional log location"
+			"logLocation": "optional log location" //if settings file cannot be read for some reason, this is logged in gitview.log file in user home directory
 		}
 	}
