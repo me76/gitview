@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Process.h"
-
 #include "DataStructs.h"
 #include "utils.h"
 
@@ -9,14 +7,12 @@
 #include <list>
 #include <string>
 
-class Git: public Process
+class Git
 {
 public:
 	struct Settings
 	{
-		std::wstring mGitPath;
 		bool mShowCurrentBranch;
-		unsigned mTimeout; //how log to wait for results from git.exe, in milliseconds;
 	};
 
 	Git(const Settings& settings);

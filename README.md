@@ -9,12 +9,7 @@ Name: gitview.json, should be in same directory as wincmd.ini or in plugins/ sub
 Format:
 
 	{
-		"git client": {
-			"git": "full/path/to/git.exe",
-			"timeoutMs": "700", //timeout for git.exe results
-			"unicodeIO": "yes", //if your branch names use non-ASCII characters and are not displayed correctly, try playing with this parameter
-			"showCurrentBranch": "false" //show or don't show current branch (if shown, it is marked with '*')
-		},
+		"showCurrentBranch": "false" //show or don't show current branch (if shown, it is marked with '*')
 
 		"repos": [
 			{

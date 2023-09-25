@@ -42,7 +42,7 @@ public:
 
 	bool initialized() const
 	{
-		return !mSettings.mGitSettings.mGitPath.empty();
+		return true;
 	}
 
 	IFileIterator* createFileIterator(const WCHAR* path); //based on 'path', delegate creation to one of methods below:

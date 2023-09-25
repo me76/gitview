@@ -122,20 +122,8 @@ bool GitView::readSettings()
 
 	try
 	{
-		const auto& gitSettingsNode = settings.get_child(L"git client");
-
 		Git::Settings& gitSettings = mSettings.mGitSettings;
-
-		gitSettings.mGitPath = gitSettingsNode.get<wstring>(L"git", wstring());
-		if(gitSettings.mGitPath.empty())
-			return false;
-
-		gitSettings.mShowCurrentBranch = gitSettingsNode.get<bool>(L"showCurrentBranch", false);
-		gitSettings.mTimeout = gitSettingsNode.get<unsigned>(L"timeoutMs", 1000);
-		if(0 == gitSettings.mTimeout)
-			gitSettings.mTimeout = 1000;
-		else if(gitSettings.mTimeout > 10000)
-			gitSettings.mTimeout = 10000;
+		gitSettings.mShowCurrentBranch = settings.get<bool>(L"showCurrentBranch", false);
 
 		const auto& repos = settings.get_child(L"repos");
 		for(const auto& item: repos)
@@ -176,8 +164,6 @@ bool GitView::readSettings()
 	wstring wSettingsFile; wSettingsFile.reserve(mSettingsFilePath.size());
 	copy(mSettingsFilePath.cbegin(), mSettingsFilePath.cend(), back_inserter(wSettingsFile));
 	log() << L"Settings (" << wSettingsFile << "):"
-	      << L"\n  git.path: " << mSettings.mGitSettings.mGitPath
-	      << L"\n  git.timeout: " << mSettings.mGitSettings.mTimeout
 			<< L"\n  git.showCurBranch: " << boolalpha << mSettings.mGitSettings.mShowCurrentBranch;
 
 	return true;
@@ -195,7 +181,7 @@ IFileIterator* GitView::createFileIterator(const WCHAR* path)
 {
 	if(!initialized())
 	{
-		mErrorFileIterator.setError(L"no git exe");
+		mErrorFileIterator.setError(L"gitview is not initialized");
 		return &mErrorFileIterator;
 	}
 

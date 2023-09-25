@@ -2,27 +2,18 @@
 
 #include "Git.h"
 
-#include "Process.h"
-
 #include <cassert>
 
 using namespace std;
 
-Git::Git(const Settings& settings)
+Git::Git(const Settings& settings):
+	mSettings(settings)
 {
-	if(settings.mGitPath.empty() /*|| boost::filesystem::exists(gitPath)*/)
-	{
-		mError = L"no git exe";
-	}
-	else
-	{
-		mSettings = settings;
-	}
 }
 
 bool Git::initialized() const
 {
-	return !mSettings.mGitPath.empty();
+	return true;
 }
 
 bool Git::collectGitResults(const wchar_t* cmd, const wstring& workingDir, StringList& results, OpStatus& endStatus)
@@ -43,29 +34,19 @@ bool Git::collectGitResults(const wchar_t* cmd, const wstring& workingDir,
 
 	endStatus.clear();
 
-	run(mSettings.mGitPath.c_str(), workingDir.c_str(), cmd);
+	//#TODO run(mSettings.mGitPath.c_str(), workingDir.c_str(), cmd);
 
 	bool hasError = false, hasResult = false;
-	unsigned waitingTime = 0, sleepTime = 200;
-	for(;
-	    waitingTime < mSettings.mTimeout && !hasError && !hasResult;
-		 hasError = mProcStdErrBuf.hasData(), hasResult = mProcStdOutBuf.hasData(), waitingTime += sleepTime)
-	{
-		Sleep(sleepTime);
-	}
 
 	if(hasError)
 	{
-		constexpr size_t bufSize = 2048;
-		wchar_t buf[bufSize];
+		//#TODO
+		//constexpr size_t bufSize = 2048;
+		//wchar_t buf[bufSize];
 
-		constexpr size_t maxErrLen = bufSize - 3; //reserving space for '...'
+		//constexpr size_t maxErrLen = bufSize - 3; //reserving space for '...'
 
-		mErr.read(buf, maxErrLen);
-		auto readLen = mErr.gcount();
-		assert(readLen > 0);
-
-		endStatus.set(OpStatus::GitError, wstring(buf, (size_t)readLen));
+		endStatus.set(OpStatus::GitError, wstring());
 		return false;
 	}
 
@@ -75,11 +56,12 @@ bool Git::collectGitResults(const wchar_t* cmd, const wstring& workingDir,
 		return false;
 	}
 
-	wstring procOutput;
+	//TODO
+	/*wstring procOutput;
 	while(getline(mOut, procOutput))
 	{
 		resultCollector(procOutput, endStatus);
-	}
+	}*/
 
 	return true;
 }
@@ -179,8 +161,9 @@ void Git::saveFile(const wstring& workingDir, const wchar_t* ref,
                    const wchar_t* srcPath, const wchar_t* destPath,
                    OpStatus& endStatus)
 {
-	wstring gitCommand(L" --no-pager show ");
+	//#TODO
+	/*wstring gitCommand(L" --no-pager show ");
 	gitCommand.append(ref).append(L":").append(srcPath);
 	run(mSettings.mGitPath.c_str(), workingDir.c_str(), gitCommand.c_str(), destPath);
-	endStatus = wait(mSettings.mTimeout);
+	endStatus = wait(mSettings.mTimeout);*/
 }
