@@ -9,6 +9,7 @@
 #include "resource.h"
 #include "utils.h"
 
+#include <git2/global.h>
 #include <boost/property_tree/json_parser.hpp>
 
 #include <algorithm>
@@ -33,6 +34,11 @@ void GitView::init(int pluginNo,
 	mPluginNo = pluginNo;
 	mProgressFunc = progressFunc;
 	mRequestFunc = requestFunc;
+
+	if(git_libgit2_init() <= 0)
+	{
+		log() << "git2 lib failed to initialize";
+	}
 }
 
 LineLogger GitView::log()
@@ -63,7 +69,7 @@ bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
 		return false;
 	}
 
-	char settingsSubpath[] = "plugins\\gitview.json";
+	char settingsSubpath[] = "plugins\\gitview2.json";
 	constexpr size_t subpathLen = DIM( settingsSubpath );
 
 	char myIniPath[MAX_PATH + subpathLen];
@@ -73,7 +79,7 @@ bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
 	ifstream settingsFile(myIniPath);
 	if (!settingsFile.is_open())
 	{
-		char iniFile[] = "gitview.json";
+		char iniFile[] = "gitview2.json";
 		copy_n(iniFile, DIM(iniFile), myIniPath + lastSlashPos + 1);
 		settingsFile.open(myIniPath);
 		if(!settingsFile.is_open())

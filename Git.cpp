@@ -2,9 +2,33 @@
 
 #include "Git.h"
 
+#include <git2.h>
+
 #include <cassert>
+#include <vector>
 
 using namespace std;
+
+namespace {
+
+vector<char> asUtf8(const wstring& s)
+{
+	vector<char> result(2 * s.size() + 1);
+	WideCharToMultiByte(CP_UTF8, 0 /*conversion flags - using default*/, s.c_str(), -1, &result.front(), result.size(), 0, 0);
+
+	return move(result);
+}
+
+wstring asWStr(const char* utf8Str)
+{
+	size_t strLen = strlen(utf8Str);
+	wstring result(strLen, ' ');
+	MultiByteToWideChar(CP_UTF8, 0 /*conversion flags - using default*/, utf8Str, -1, &result.front(), strLen);
+
+	return move(result);
+}
+
+} //local namespace
 
 Git::Git(const Settings& settings):
 	mSettings(settings)
@@ -69,17 +93,48 @@ bool Git::collectGitResults(const wchar_t* cmd, const wstring& workingDir,
 bool Git::br(const std::wstring& workingDir,
              StringList& branches, OpStatus& endStatus)
 {
-	ResultCollector branchNameFilter = [this, &branches](const wstring& branchName, OpStatus& endStatus) mutable
+	git_repository* repo;
+	if(endStatus.mErrorCode = git_repository_open(&repo, asUtf8(workingDir).data()))
 	{
-		if(branchName.empty() || !mSettings.mShowCurrentBranch && L'*' == branchName[0])
+		endStatus.mStatus = OpStatus::GitError;
+		endStatus.mDescr.assign(L"failed to open git repo at ").append(workingDir);
+		return false;
+	}
+
+	git_branch_iterator* branchIt = 0;
+	if(endStatus.mErrorCode = git_branch_iterator_new( &branchIt, repo, GIT_BRANCH_LOCAL ))
+	{
+		endStatus.mStatus = OpStatus::GitError;
+		endStatus.mDescr.assign( L"failed to read git branches at " ).append( workingDir );
+		return false;
+	}
+
+	git_reference* branch = 0;
+	git_branch_t branchType;
+	for(bool hasMore = true; hasMore; )
+	{
+		switch(git_branch_next(&branch, &branchType, branchIt))
 		{
-			return;
+			case 0:
+				if(GIT_BRANCH_LOCAL == branchType)
+				{
+					const char* brName;
+					if(git_branch_name(&brName, branch) == 0)
+					{
+						branches.emplace_back(asWStr(brName));
+					};
+				}
+				break;
+			case GIT_ITEROVER:
+				hasMore = false;
+				break;
+			default:
+				;
 		}
+	}
 
-		branches.emplace_back(branchName.substr(branchName.find_first_not_of(L" \t")));
-	};
-
-	return collectGitResults(L" branch --no-color", workingDir, branchNameFilter, endStatus);
+	git_branch_iterator_free(branchIt);
+	return true;
 }
 
 bool Git::tags(const std::wstring& workingDir,
@@ -94,6 +149,40 @@ bool Git::ls(const std::wstring& workingDir,
 {
 	if(!initialized())
 		return false;
+
+	/*git_repository* repo;
+	git_repository_open(&repo, "");
+
+	git_branch_iterator* branchIt = 0;
+	if(git_branch_iterator_new(&branchIt, repo, GIT_BRANCH_LOCAL) != 0)
+	{
+		
+		return false;
+	}
+
+	git_reference* branch = 0;
+	git_branch_t branchType;
+	for(bool hasMore = true; hasMore; )
+	{
+		switch(git_branch_next(&branch, &branchType, branchIt))
+		{
+			case 0:
+				if(GIT_BRANCH_LOCAL == branchType)
+				{
+					char* brName;
+					git_branch_name(&brName, branch);
+				}
+			break;
+			case GIT_ITEROVER:
+				hasMore = false;
+			break;
+			default:
+				;
+		}
+	}
+
+	git_branch_iterator_free(branchIt);*/
+
 
 	ResultCollector fileNameExtractor = [this, &dirPath, &fileData](const wstring& lsLine, OpStatus& endStatus) mutable
 	{
