@@ -49,14 +49,14 @@ bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
 {
 	//look for 'plugins/gitview.json' file first, then for 'gitview.json'
 	const char dirSlash = '\\';
-	size_t lastSlashPos = MAX_PATH;
-	for (size_t i = 0; i < MAX_PATH; ++i)
+	size_t lastSlashPos = 0;
+	for(size_t i = 0; i < MAX_PATH && defaultSettingsPath[i]; ++i)
 	{
 		if (dirSlash == defaultSettingsPath[i])
 			lastSlashPos = i;
 	}
 
-	if (MAX_PATH == lastSlashPos)
+	if('\0' == defaultSettingsPath[lastSlashPos])
 	{
 		ofstream fallbackLog(mSettings.mFallbackLogPath, ios_base::out | ios_base::app);
 		fallbackLog << "invalid ini location '" << defaultSettingsPath << "' - cannot read the settings" << endl;
@@ -67,8 +67,8 @@ bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
 	constexpr size_t subpathLen = DIM( settingsSubpath );
 
 	char myIniPath[MAX_PATH + subpathLen];
-	copy( defaultSettingsPath, defaultSettingsPath + lastSlashPos + 1, myIniPath );
-	copy_n( settingsSubpath, subpathLen, myIniPath + lastSlashPos + 1 );
+	copy(defaultSettingsPath, defaultSettingsPath + lastSlashPos + 1, myIniPath);
+	copy_n(settingsSubpath, subpathLen, myIniPath + lastSlashPos + 1);
 
 	ifstream settingsFile(myIniPath);
 	if (!settingsFile.is_open())
@@ -76,7 +76,7 @@ bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
 		char iniFile[] = "gitview.json";
 		copy_n(iniFile, DIM(iniFile), myIniPath + lastSlashPos + 1);
 		settingsFile.open(myIniPath);
-		if (!settingsFile.is_open())
+		if(!settingsFile.is_open())
 		{
 			ofstream fallbackLog(mSettings.mFallbackLogPath, ios_base::out | ios_base::app);
 			fallbackLog << "Settings file " << myIniPath << " does not exist or is not accessible - cannot initialize gitview." << endl;
