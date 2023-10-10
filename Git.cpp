@@ -5,18 +5,28 @@
 #include <git2.h>
 
 #include <cassert>
+#include <memory>
 #include <vector>
 
 using namespace std;
 
 namespace {
 
-vector<char> asUtf8(const wstring& s)
+string asUtf8(const wstring& s)
 {
-	vector<char> result(2 * s.size() + 1);
-	WideCharToMultiByte(CP_UTF8, 0 /*conversion flags - using default*/, s.c_str(), -1, &result.front(), result.size(), 0, 0);
+	string result;
+	if(!s.empty())
+	{
+		result.resize(2 * s.size());
+		int resultSize = WideCharToMultiByte(CP_UTF8, 0 /*conversion flags - using default*/, s.c_str(), s.size(), &result.front(), result.size(), 0, 0);
 
-	return move(result);
+		if(resultSize > 0)
+		{
+			result.resize(resultSize);
+		}
+	}
+
+	return result;
 }
 
 wstring asWStr(const char* utf8Str)
@@ -25,7 +35,37 @@ wstring asWStr(const char* utf8Str)
 	wstring result(strLen, ' ');
 	MultiByteToWideChar(CP_UTF8, 0 /*conversion flags - using default*/, utf8Str, -1, &result.front(), strLen);
 
-	return move(result);
+	return result;
+}
+
+typedef std::shared_ptr<git_repository> GitRepoPtr;
+
+GitRepoPtr getRepo(const std::wstring& workingDir, OpStatus& opStatus)
+{
+	git_repository* repo;
+	if(opStatus.mErrorCode = git_repository_open(&repo, asUtf8(workingDir).c_str()))
+	{
+		opStatus.mStatus = OpStatus::GitError;
+		opStatus.mDescr.assign(L"failed to open git repo at ").append(workingDir);
+		return GitRepoPtr();
+	}
+
+	return GitRepoPtr(repo, git_repository_free);
+}
+
+typedef std::shared_ptr<git_branch_iterator> GitBranchIt;
+
+GitBranchIt getFirstLocalBranch(GitRepoPtr repo, OpStatus& opStatus)
+{
+	git_branch_iterator* branchIt = 0;
+	if(opStatus.mErrorCode = git_branch_iterator_new(&branchIt, repo.get(), GIT_BRANCH_LOCAL))
+	{
+		opStatus.mStatus = OpStatus::GitError;
+		opStatus.mDescr.assign(L"failed to read git branches at ").append(L"workingDir");
+		return GitBranchIt();
+	}
+
+	return GitBranchIt(branchIt, git_branch_iterator_free);
 }
 
 } //local namespace
@@ -91,21 +131,17 @@ bool Git::collectGitResults(const wchar_t* cmd, const wstring& workingDir,
 }
 
 bool Git::br(const std::wstring& workingDir,
-             StringList& branches, OpStatus& endStatus)
+             StringList& branches, OpStatus& opStatus)
 {
-	git_repository* repo;
-	if(endStatus.mErrorCode = git_repository_open(&repo, asUtf8(workingDir).data()))
+	GitRepoPtr repo = getRepo(workingDir, opStatus);
+	if(!repo)
 	{
-		endStatus.mStatus = OpStatus::GitError;
-		endStatus.mDescr.assign(L"failed to open git repo at ").append(workingDir);
 		return false;
 	}
 
-	git_branch_iterator* branchIt = 0;
-	if(endStatus.mErrorCode = git_branch_iterator_new( &branchIt, repo, GIT_BRANCH_LOCAL ))
+	GitBranchIt branchIt = getFirstLocalBranch(repo, opStatus);
+	if(!branchIt)
 	{
-		endStatus.mStatus = OpStatus::GitError;
-		endStatus.mDescr.assign( L"failed to read git branches at " ).append( workingDir );
 		return false;
 	}
 
@@ -113,7 +149,7 @@ bool Git::br(const std::wstring& workingDir,
 	git_branch_t branchType;
 	for(bool hasMore = true; hasMore; )
 	{
-		switch(git_branch_next(&branch, &branchType, branchIt))
+		switch(git_branch_next(&branch, &branchType, branchIt.get()))
 		{
 			case 0:
 				if(GIT_BRANCH_LOCAL == branchType)
@@ -133,7 +169,6 @@ bool Git::br(const std::wstring& workingDir,
 		}
 	}
 
-	git_branch_iterator_free(branchIt);
 	return true;
 }
 
@@ -144,106 +179,101 @@ bool Git::tags(const std::wstring& workingDir,
 }
 
 bool Git::ls(const std::wstring& workingDir,
-             const wstring& gitRef, const wstring& dirPath,
-             Entries& fileData, OpStatus& endStatus)
+             const wstring& gitRef, const wstring& subDir,
+             Entries& fileData, OpStatus& opStatus)
 {
 	if(!initialized())
 		return false;
 
-	/*git_repository* repo;
-	git_repository_open(&repo, "");
+	GitRepoPtr repo = getRepo(workingDir, opStatus);
 
-	git_branch_iterator* branchIt = 0;
-	if(git_branch_iterator_new(&branchIt, repo, GIT_BRANCH_LOCAL) != 0)
+	git_index* index;
+	if(git_repository_index(&index, repo.get()) < 0)
 	{
-		
+		opStatus.set(OpStatus::GitError, L"gitlib2: couldn't open repository index");
 		return false;
 	}
 
-	git_reference* branch = 0;
-	git_branch_t branchType;
-	for(bool hasMore = true; hasMore; )
+	git_oid treeId;
+	if(git_index_write_tree(&treeId, index) < 0)
 	{
-		switch(git_branch_next(&branch, &branchType, branchIt))
+		opStatus.set(OpStatus::GitError, L"gitlib2: couldn't convert index to treeId");
+		return false;
+	}
+
+	git_index_free(index);
+
+	git_tree* root;
+	if(git_tree_lookup(&root, repo.get(), &treeId) < 0)
+	{
+		opStatus.set(OpStatus::GitError, L"gitlib2: couldn't get tree from treeId");
+		return false;
+	}
+
+	git_tree* targetTree = root;
+
+	if(!subDir.empty())
+	{
+		git_tree_entry* entry;
+		if(git_tree_entry_bypath(&entry, root, asUtf8(subDir).c_str()))
 		{
-			case 0:
-				if(GIT_BRANCH_LOCAL == branchType)
-				{
-					char* brName;
-					git_branch_name(&brName, branch);
-				}
+			opStatus.set(OpStatus::GitError, L"gitlib2: couldn't get tree entry for " + subDir);
+			return false;
+		}
+
+		if(git_tree_entry_type(entry) != GIT_OBJECT_TREE)
+		{
+			opStatus.set(OpStatus::InternalError, subDir + L" wasn't a subdirectory in repo " + workingDir);
+			return false;
+		}
+
+		if(git_tree_lookup(&targetTree, repo.get(), git_tree_entry_id(entry)))
+		{
+			opStatus.set(OpStatus::GitError, L"gitlib2: couldn't find tree id for " + subDir);
+			return false;
+		}
+	}
+
+	struct Payload
+	{
+		Entries& fileEntries;
+		const wstring& subDir;
+	}
+	payload = {fileData, subDir};
+
+	auto traverseCallback = [](const char* root, const git_tree_entry* entry, void* payload) -> int
+	{
+		//return 1 to skip the entry, 0 to include it in traversal, and -1 to terminate traversal
+
+		if(!root)
+			return 1;
+
+		Payload* paramsAndResults = static_cast<Payload*>(payload);
+
+		if(root && *root) //list only top-level entries
+			return 1;
+
+		Entries& fileEntries = paramsAndResults->fileEntries;
+		const wstring& subDir = paramsAndResults->subDir;
+
+		wstring fileName = asWStr(git_tree_entry_name(entry));
+		switch(git_tree_entry_type(entry))
+		{
+			case GIT_OBJECT_TREE:
+				fileEntries.emplace_back(fileName, Entry::Directory);
 			break;
-			case GIT_ITEROVER:
-				hasMore = false;
+			case GIT_OBJECT_BLOB:
+				fileEntries.emplace_back(fileName, Entry::File);
 			break;
 			default:
-				;
-		}
-	}
-
-	git_branch_iterator_free(branchIt);*/
-
-
-	ResultCollector fileNameExtractor = [this, &dirPath, &fileData](const wstring& lsLine, OpStatus& endStatus) mutable
-	{
-		endStatus.set(OpStatus::BadResult, L"invalid results from 'git ls-tree'");
-
-		if(lsLine.empty())
-			return;
-
-		struct {
-			const wchar_t separator;
-			size_t position;
-		} markers[] = { {L' ', 0}, {L' ', 0}, {L'\t', 0} };
-
-		//lsLine: <mode> SP <type> SP <object> TAB <file>
-		for(size_t i = 0, startPos = 0; i < DIM(markers); ++i)
-		{
-			auto& marker = markers[i];
-			marker.position = lsLine.find(marker.separator, startPos);
-			if(wstring::npos == marker.position)
-				return;
-
-			startPos = marker.position + 1;
-			if(startPos >= lsLine.size())
-				return;
+				return 1;
 		}
 
-		size_t typePos = markers[0].position + 1;
-		size_t pathPos = markers[2].position + 1;
-		wstring type(lsLine, typePos, markers[1].position - typePos),
-				  filePath(lsLine, pathPos);
-
-		Entry::Type entryType;
-		if(L"blob" == type)         entryType = Entry::File;
-		else if(L"tree" == type)    entryType = Entry::Directory;
-		else if(L"commit" == type)  entryType = Entry::Commit;
-		else                        return;
-  
-		wstring adjustedPath = filePath;
-		if(adjustedPath.size() >= dirPath.size() && adjustedPath.compare(0, dirPath.size(), dirPath) == 0)
-		{
-			adjustedPath.erase(0, dirPath.size());
-			adjustedPath.erase(0, adjustedPath.find_first_not_of(L"/"));
-		}
-		if(!adjustedPath.empty())
-		{
-			fileData.emplace_back(adjustedPath, entryType);
-		}
-
-		endStatus.clear();
+		return 0;
 	};
+	git_tree_walk(targetTree, GIT_TREEWALK_PRE, traverseCallback, &payload);
 
-	const wchar_t ls[] = L" ls-tree --abbrev ";
-	wstring gitCommand;
-	gitCommand.reserve(DIM(ls) + gitRef.size() + 1 + dirPath.size() + 2);
-	gitCommand.append(ls).append(gitRef).append(L" ").append(dirPath);
-	if(!dirPath.empty())
-	{
-		gitCommand += L"/";
-	}
-
-	return collectGitResults(gitCommand.c_str(), workingDir, fileNameExtractor, endStatus);
+	return true;
 }
 
 void Git::saveFile(const wstring& workingDir, const wchar_t* ref,
