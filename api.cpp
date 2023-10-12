@@ -36,13 +36,21 @@ void FsGetDefRootName(char* DefRootName, int maxlen)
 	copy_n(name, min(DIM(name), maxlen), DefRootName);
 }
 
+int FsInit(int pluginNo,
+           tProgressProc progressFunc,
+           tLogProc logFunc,
+           tRequestProc requestFunc)
+{
+	gview.init(pluginNo, nullptr, nullptr, nullptr);
+
+	return 0;
+}
+
 int FsInitW(int pluginNo,
             tProgressProcW progressFunc,
             tLogProcW logFunc,
             tRequestProcW requestFunc)
 {
-	//gview.log(2, L"Init called");
-
 	gview.init(pluginNo, progressFunc, logFunc, requestFunc);
 
 	return 0;
@@ -51,6 +59,12 @@ int FsInitW(int pluginNo,
 void FsSetDefaultParams(FsDefaultParamStruct* dps)
 {
 	gview.loadSettings(dps->DefaultIniName);
+}
+
+HANDLE FsFindFirst(CHAR* path, WIN32_FIND_DATA* fileData)
+{
+	SetLastError(ERROR_NO_MORE_FILES);
+	return INVALID_HANDLE_VALUE;
 }
 
 HANDLE FsFindFirstW(WCHAR* path, WIN32_FIND_DATAW* fileData)
@@ -92,6 +106,11 @@ HANDLE FsFindFirstW(WCHAR* path, WIN32_FIND_DATAW* fileData)
 	return fIt ? (HANDLE)fIt : INVALID_HANDLE_VALUE;
 }
 
+BOOL FsFindNext(HANDLE fh, WIN32_FIND_DATA* fileData)
+{
+	return FALSE;
+}
+
 BOOL FsFindNextW(HANDLE fh, WIN32_FIND_DATAW* fileData)
 {
 	if(IFileIterator* fIt = gview.getFileIterator(fh))
@@ -116,7 +135,7 @@ int FsGetFileW(WCHAR* srcPath, WCHAR* destPath, int copyFlags, RemoteInfoStruct*
 {
 	if(0 == copyFlags)
 	{
-		if(PathFileExists(destPath))
+		if(PathFileExistsW(destPath))
 			return FS_FILE_EXISTSRESUMEALLOWED;
 	}
 	else

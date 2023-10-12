@@ -331,9 +331,9 @@ DWORD connectChildOutput(HANDLE& childOutHandle, HANDLE& pipeInHandle, const WCH
 
 	if(redirToFile)
 	{
-		childOutHandle = CreateFile(redirFilePath,
-		                            GENERIC_WRITE, 0, &secAttrs,
-		                            CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+		childOutHandle = CreateFileW(redirFilePath,
+		                             GENERIC_WRITE, 0, &secAttrs,
+		                             CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 		if(INVALID_HANDLE_VALUE == childOutHandle)
 		{
 			auto winApiError = GetLastError();
@@ -380,13 +380,13 @@ OpStatus Process::run(const WCHAR* cmd, const WCHAR* workDir, const WCHAR* param
 		return OpStatus(OpStatus::SystemError, L"cannot read from git", winApiError);
 
 	PROCESS_INFORMATION procInfo;
-	if(!CreateProcess(cmd, (WCHAR*)params,
-	                  0, 0, TRUE, //no security attributed; inherit handles
-	                  NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW,
-	                  NULL,
-	                  workDir,
-	                  &startInfo,
-	                  &procInfo))
+	if(!CreateProcessW(cmd, (WCHAR*)params,
+	                   0, 0, TRUE, //no security attributed; inherit handles
+	                   NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW,
+	                   NULL,
+	                   workDir,
+	                   &startInfo,
+	                   &procInfo))
 	{
 		winApiError = GetLastError();
 		gview.log() << "CreateProcess.Error: " << winApiError;
