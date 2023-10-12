@@ -316,7 +316,8 @@ void GitView::saveFile(wchar_t* srcPath, wchar_t* destPath, OpStatus& saveStatus
 {
 	saveStatus.clear();
 
-	mProgressFunc(mPluginNo, srcPath, destPath, 0);
+	if(mProgressFunc)
+		mProgressFunc( mPluginNo, srcPath, destPath, 0 );
 
 	ItemKey itemKey(srcPath);
 	const Repo* repo = findRepo(itemKey);
@@ -331,5 +332,6 @@ void GitView::saveFile(wchar_t* srcPath, wchar_t* destPath, OpStatus& saveStatus
 	Git git(mSettings.mGitSettings);
 	git.saveFile(repo->workingDir, itemKey.branch.c_str(), itemKey.filePath.c_str(), destPath, saveStatus);
 
-	mProgressFunc(mPluginNo, srcPath, destPath, 100);
+	if(mProgressFunc)
+		mProgressFunc( mPluginNo, srcPath, destPath, 100 );
 }
