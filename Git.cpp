@@ -7,6 +7,7 @@
 #include <cassert>
 #include <fstream>
 #include <memory>
+#include <sstream>
 #include <vector>
 
 using namespace std;
@@ -139,6 +140,8 @@ bool Git::tags(const std::wstring& workingDir,
 		tags.push_back(asWStr(tagNames.strings[i]));
 	}
 	git_strarray_dispose(&tagNames);
+
+	return true;
 }
 
 bool Git::ls(const std::wstring& workingDir,
@@ -149,6 +152,10 @@ bool Git::ls(const std::wstring& workingDir,
 		return false;
 
 	GitRepoPtr repo = getRepo(workingDir, opStatus);
+	if(!repo)
+	{
+		return false;
+	}
 
 	git_index* index;
 	if(git_repository_index(&index, repo.get()) < 0)
@@ -241,13 +248,53 @@ bool Git::ls(const std::wstring& workingDir,
 
 void Git::saveFile(const wstring& workingDir, const wchar_t* ref,
                    const wchar_t* srcPath, const wchar_t* destPath,
-                   OpStatus& endStatus)
+                   OpStatus& opStatus)
 {
-	//#TODO
-	/*wstring gitCommand(L" --no-pager show ");
-	gitCommand.append(ref).append(L":").append(srcPath);
-	run(mSettings.mGitPath.c_str(), workingDir.c_str(), gitCommand.c_str(), destPath);
-	endStatus = wait(mSettings.mTimeout);*/
-	wofstream(destPath) << L"opening files not implemented yet";
-	endStatus.set(OpStatus::Unexpected, L"opening files not implemented yet");
+	GitRepoPtr repo = getRepo(workingDir, opStatus);
+	if(!repo)
+	{
+		wofstream(destPath) << L"no git repo in " << workingDir;
+		opStatus.set(OpStatus::GitError, L"not a git repo");
+		return;
+	}
+
+	wstring revPath;
+	revPath.assign(ref).append(L":").append(srcPath);
+
+	git_object* gitObject = nullptr;
+	if(git_revparse_single(&gitObject, repo.get(), asUtf8(revPath).c_str()))
+	{
+		wofstream(destPath) << L"rev " << revPath << L" not found in repo " << workingDir;
+		opStatus.set(OpStatus::GitError, L"rev not found in repo");
+		return;
+	}
+
+	if(git_object_type(gitObject) != GIT_OBJECT_BLOB)
+	{
+		opStatus.set(OpStatus::GitError, L"not a file");
+		git_object_free(gitObject);
+		return;
+	}
+
+	git_blob* blob = (git_blob*)gitObject;
+
+	auto file = CreateFile(destPath, GENERIC_WRITE, 0 /*sharing*/, NULL /*&secAttrs*/,
+	                       CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL /*hTemplateFile*/);
+	if(INVALID_HANDLE_VALUE == file)
+	{
+		wstringstream ss;
+		ss << L"couldn't create file " << destPath << L": error " << GetLastError();
+		opStatus.set(OpStatus::SystemError, ss.str());
+		return;
+	}
+
+	DWORD dataSize = (DWORD)git_blob_rawsize(blob), bytesWritten = 0;
+	if(!WriteFile(file, git_blob_rawcontent( blob ), dataSize, &bytesWritten, NULL /*&overlapped*/) || bytesWritten < dataSize)
+	{
+		opStatus.set(OpStatus::SystemError, L"couldn't save all content");
+	}
+
+	git_blob_free(blob);
+
+	CloseHandle(file);
 }

@@ -323,5 +323,10 @@ void GitView::saveFile(wchar_t* srcPath, wchar_t* destPath, OpStatus& saveStatus
 	Git git(mSettings.mGitSettings);
 	git.saveFile(repo->workingDir, itemKey.branch.c_str(), itemKey.filePath.c_str(), destPath, saveStatus);
 
+	if(saveStatus.isBad())
+	{
+		log() << L"Git.saveFile: " << saveStatus.mDescr;
+	}
+
 	mProgressFunc(mPluginNo, srcPath, destPath, 100);
 }
