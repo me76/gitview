@@ -5,6 +5,7 @@
 #include <git2.h>
 
 #include <cassert>
+#include <fstream>
 #include <memory>
 #include <vector>
 
@@ -80,56 +81,6 @@ bool Git::initialized() const
 	return true;
 }
 
-bool Git::collectGitResults(const wchar_t* cmd, const wstring& workingDir, StringList& results, OpStatus& endStatus)
-{
-	ResultCollector acceptAll = [&results](const wstring& s, OpStatus& endStatus) mutable
-	{
-		results.push_back(s);
-	};
-
-	return collectGitResults(cmd, workingDir, acceptAll, endStatus);
-}
-
-bool Git::collectGitResults(const wchar_t* cmd, const wstring& workingDir,
-                            ResultCollector& resultCollector, OpStatus& endStatus)
-{
-	if(!initialized())
-		return false;
-
-	endStatus.clear();
-
-	//#TODO run(mSettings.mGitPath.c_str(), workingDir.c_str(), cmd);
-
-	bool hasError = false, hasResult = false;
-
-	if(hasError)
-	{
-		//#TODO
-		//constexpr size_t bufSize = 2048;
-		//wchar_t buf[bufSize];
-
-		//constexpr size_t maxErrLen = bufSize - 3; //reserving space for '...'
-
-		endStatus.set(OpStatus::GitError, wstring());
-		return false;
-	}
-
-	if(!hasResult) //neither error nor result available after timeout
-	{
-		endStatus.set(OpStatus::GitError, L"No data");
-		return false;
-	}
-
-	//TODO
-	/*wstring procOutput;
-	while(getline(mOut, procOutput))
-	{
-		resultCollector(procOutput, endStatus);
-	}*/
-
-	return true;
-}
-
 bool Git::br(const std::wstring& workingDir,
              StringList& branches, OpStatus& opStatus)
 {
@@ -173,9 +124,21 @@ bool Git::br(const std::wstring& workingDir,
 }
 
 bool Git::tags(const std::wstring& workingDir,
-               StringList& tags, OpStatus& endStatus)
+               StringList& tags, OpStatus& opStatus)
 {
-	return collectGitResults(L" tag -l", workingDir, tags, endStatus);
+	GitRepoPtr repo = getRepo(workingDir, opStatus);
+	if(!repo)
+	{
+		return false;
+	}
+
+	git_strarray tagNames;
+	git_tag_list(&tagNames, repo.get());
+	for(size_t i = 0; i < tagNames.count; ++i)
+	{
+		tags.push_back(asWStr(tagNames.strings[i]));
+	}
+	git_strarray_dispose(&tagNames);
 }
 
 bool Git::ls(const std::wstring& workingDir,
@@ -285,4 +248,6 @@ void Git::saveFile(const wstring& workingDir, const wchar_t* ref,
 	gitCommand.append(ref).append(L":").append(srcPath);
 	run(mSettings.mGitPath.c_str(), workingDir.c_str(), gitCommand.c_str(), destPath);
 	endStatus = wait(mSettings.mTimeout);*/
+	wofstream(destPath) << L"opening files not implemented yet";
+	endStatus.set(OpStatus::Unexpected, L"opening files not implemented yet");
 }

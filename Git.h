@@ -31,11 +31,6 @@ public:
 private:
 	typedef std::function<void (const std::wstring&, OpStatus&)> ResultCollector;
 
-	bool collectGitResults(const wchar_t* cmd, const std::wstring& workingDir,
-	                       StringList& results, OpStatus& endStatus);
-	bool collectGitResults(const wchar_t* cmd, const std::wstring& workingDir,
-	                       ResultCollector& resultCollector, OpStatus& endStatus);
-
 private:
 	Settings mSettings;
 	std::wstring mError = L"not init-ed";
