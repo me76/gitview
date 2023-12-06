@@ -157,35 +157,17 @@ bool Git::ls(const std::wstring& workingDir,
 		return false;
 	}
 
-	git_index* index;
-	if(git_repository_index(&index, repo.get()) < 0)
+	git_tree* targetTree;
+	if(git_revparse_single((git_object**)&targetTree, repo.get(), asUtf8(gitRef + L"^{tree}").c_str()))
 	{
-		opStatus.set(OpStatus::GitError, L"gitlib2: couldn't open repository index");
+		opStatus.set(OpStatus::GitError, L"git_revparse(" + gitRef + L") failed");
 		return false;
 	}
-
-	git_oid treeId;
-	if(git_index_write_tree(&treeId, index) < 0)
-	{
-		opStatus.set(OpStatus::GitError, L"gitlib2: couldn't convert index to treeId");
-		return false;
-	}
-
-	git_index_free(index);
-
-	git_tree* root;
-	if(git_tree_lookup(&root, repo.get(), &treeId) < 0)
-	{
-		opStatus.set(OpStatus::GitError, L"gitlib2: couldn't get tree from treeId");
-		return false;
-	}
-
-	git_tree* targetTree = root;
 
 	if(!subDir.empty())
 	{
 		git_tree_entry* entry;
-		if(git_tree_entry_bypath(&entry, root, asUtf8(subDir).c_str()))
+		if(git_tree_entry_bypath(&entry, targetTree, asUtf8(subDir).c_str()))
 		{
 			opStatus.set(OpStatus::GitError, L"gitlib2: couldn't get tree entry for " + subDir);
 			return false;
@@ -241,7 +223,11 @@ bool Git::ls(const std::wstring& workingDir,
 
 		return 0;
 	};
-	git_tree_walk(targetTree, GIT_TREEWALK_PRE, traverseCallback, &payload);
+	if(git_tree_walk(targetTree, GIT_TREEWALK_PRE, traverseCallback, &payload))
+	{
+		opStatus.set(OpStatus::GitError, L"git_tree_walk failed");
+		return false;
+	}
 
 	return true;
 }
