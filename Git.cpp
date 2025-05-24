@@ -274,8 +274,11 @@ void Git::saveFile(const wstring& workingDir, const wchar_t* ref,
 		return;
 	}
 
+	//#TODO: don't apply filters for binary files; try to convert line endings
+	/*git_blob_filter_options filterOptions = GIT_BLOB_FILTER_OPTIONS_INIT;
+	git_blob_filter()*/
 	DWORD dataSize = (DWORD)git_blob_rawsize(blob), bytesWritten = 0;
-	if(!WriteFile(file, git_blob_rawcontent( blob ), dataSize, &bytesWritten, NULL /*&overlapped*/) || bytesWritten < dataSize)
+	if(!WriteFile(file, git_blob_rawcontent(blob), dataSize, &bytesWritten, NULL /*&overlapped*/) || bytesWritten < dataSize)
 	{
 		opStatus.set(OpStatus::SystemError, L"couldn't save all content");
 	}

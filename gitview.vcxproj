@@ -95,7 +95,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <CallingConvention>StdCall</CallingConvention>
-      <AdditionalIncludeDirectories>&lt;path to boost lib&gt;\boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>&lt;path to boost lib&gt;;&lt;path to libgit2 lib&gt;\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -103,8 +103,8 @@
       <EnableUAC>false</EnableUAC>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <ModuleDefinitionFile>$(ProjectDir)$(ProjectName).def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>&lt;path to boost lib&gt;\boost\libs</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>&lt;path to libs&gt;;&lt;path to boost libs&gt;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Shlwapi.lib;git2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -119,7 +119,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CallingConvention>StdCall</CallingConvention>
-      <AdditionalIncludeDirectories>&lt;path to boost lib&gt;\boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>&lt;path to boost lib&gt;;&lt;path to libgit2 lib&gt;\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -129,7 +129,7 @@
       <EnableUAC>false</EnableUAC>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <ModuleDefinitionFile>$(ProjectDir)$(ProjectName).def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>&lt;path to boost lib&gt;\boost\libs</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>&lt;path to libs&gt;;&lt;path to boost libs&gt;</AdditionalLibraryDirectories>
       <AdditionalDependencies>Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -142,7 +142,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <CallingConvention>StdCall</CallingConvention>
-      <AdditionalIncludeDirectories>&lt;path to boost lib&gt;\boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>&lt;path to boost lib&gt;;&lt;path to libgit2 lib&gt;\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -150,8 +150,8 @@
       <EnableUAC>false</EnableUAC>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <ModuleDefinitionFile>$(ProjectDir)$(ProjectName).def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>&lt;path to boost lib&gt;\boost\libs</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Shlwapi.lib;git2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>&lt;path to libs&gt;;&lt;path to boost libs&gt;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Shlwapi.lib;git2.lib64;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -166,7 +166,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CallingConvention>StdCall</CallingConvention>
-      <AdditionalIncludeDirectories>&lt;path to boost lib&gt;\boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>&lt;path to boost lib&gt;;&lt;path to libgit2 lib&gt;\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -176,7 +176,7 @@
       <EnableUAC>false</EnableUAC>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <ModuleDefinitionFile>$(ProjectDir)$(ProjectName).def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>&lt;path to boost lib&gt;\boost\libs</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>&lt;path to libs&gt;;&lt;path to boost libs&gt;</AdditionalLibraryDirectories>
       <AdditionalDependencies>Shlwapi.lib;git2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
