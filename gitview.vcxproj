@@ -200,6 +200,7 @@
     <ClInclude Include="RepoNameIterator.h" />
     <ClInclude Include="Repositories.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="TopDirIterator.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
@@ -221,6 +222,7 @@
     <ClCompile Include="RefTypeIterator.cpp" />
     <ClCompile Include="RepoNameIterator.cpp" />
     <ClCompile Include="Repositories.cpp" />
+    <ClCompile Include="TopDirIterator.cpp" />
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

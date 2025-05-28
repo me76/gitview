@@ -10,7 +10,7 @@ public:
 	IFileIterator();
 	virtual ~IFileIterator();
 
-	        bool getData(WIN32_FIND_DATAW& fileData);
+	        bool getData(WIN32_FIND_DATAW& fileData) const;
 	        bool next();
 	virtual bool isValid() const { return false; }
 

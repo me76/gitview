@@ -21,7 +21,7 @@ struct LineLogger
 {
 	std::wostream* log;
 
-	LineLogger(std::wostream& s): log(&s) { }
+	LineLogger(std::wostream& s);
 
 	template<class T>
 	LineLogger& operator<<(const T& t)

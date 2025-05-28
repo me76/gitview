@@ -17,7 +17,7 @@ class Process
 		void setIoHandle(HANDLE ioHandle);
 
 	protected:
-		IOBuf(HANDLE ioHandle = 0);
+		IOBuf(const char* name, HANDLE ioHandle = 0);
 
 		pos_type calcNewPos(std::streampos startPos, std::streamoff offset, std::ios_base::seekdir startFrom) const;
 		void setGetPos(std::streampos pos);
@@ -27,6 +27,7 @@ class Process
 
 	protected:
 		HANDLE mIoHandle;
+		const char* mName; //to identify stdout and stderr in the log
 
 		static constexpr size_t mBufSize = 1024;
 		wchar_t mBuf[mBufSize] = {0};
@@ -37,7 +38,7 @@ class Process
 		typedef IOBuf Super;
 
 	public:
-		InBuf(HANDLE ioHandle = 0): Super(ioHandle) { }
+		InBuf(const char* name, HANDLE ioHandle = 0): Super(name, ioHandle) { }
 
 		virtual pos_type seekoff(off_type offset, std::ios_base::seekdir startFrom,
 		                         std::ios_base::openmode which) override;
@@ -56,7 +57,7 @@ class Process
 		typedef IOBuf Super;
 
 	public:
-		OutBuf(HANDLE ioHandle = 0): Super(ioHandle) { }
+		OutBuf(const char* name, HANDLE ioHandle = 0): Super(name, ioHandle) { }
 
 		virtual pos_type seekoff(off_type offset, std::ios_base::seekdir startFrom,
 		                         std::ios_base::openmode which) override;

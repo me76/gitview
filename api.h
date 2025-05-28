@@ -2,7 +2,7 @@
 
 #include "fsplugin.h"
 
-void FsGetDefRootName(char* DefRootName, int maxlen);
+void FsGetDefRootName(char* defRootName, int maxlen); //get 'gitview' name for showing in Network Neighborhood
 
 int FsInit(int pluginNo,
            tProgressProc progressFunc,
@@ -16,10 +16,10 @@ int FsInitW(int pluginNo,
 
 void FsSetDefaultParams(FsDefaultParamStruct* dps);
 
-HANDLE FsFindFirst(CHAR* path, WIN32_FIND_DATA* fileData);
+HANDLE FsFindFirst(CHAR* path, WIN32_FIND_DATA* fileData); //get first item in directory
 HANDLE FsFindFirstW(WCHAR* path, WIN32_FIND_DATAW* fileData);
-BOOL FsFindNext(HANDLE fh, WIN32_FIND_DATA* fileData);
+BOOL FsFindNext(HANDLE fh, WIN32_FIND_DATA* fileData); //get next item in directory
 BOOL FsFindNextW(HANDLE fh, WIN32_FIND_DATAW* fileData);
-int FsFindClose(HANDLE fh);
+int FsFindClose(HANDLE fh); //called when item listing ends
 
-int FsGetFileW(WCHAR* srcPath, WCHAR* destPath, int copyFlags, RemoteInfoStruct* remoteInfo);
+int FsGetFileW(WCHAR* srcPath, WCHAR* destPath, int copyFlags, RemoteInfoStruct* remoteInfo); //copy item content to 'destPath'

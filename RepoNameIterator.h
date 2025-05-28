@@ -1,3 +1,5 @@
+#pragma once
+
 #include "IFileIterator.h"
 
 #include "Repositories.h"

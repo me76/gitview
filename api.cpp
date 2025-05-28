@@ -30,10 +30,10 @@ void getSettingsDirName(WCHAR* buf, size_t size)
 	copy_n(settingsItem, min(DIM(settingsItem), size), buf);
 }
 
-void FsGetDefRootName(char* DefRootName, int maxlen)
+void FsGetDefRootName(char* defRootName, int maxlen)
 {
 	const char name[] = "gitview";
-	copy_n(name, min(DIM(name), maxlen), DefRootName);
+	copy_n(name, min(DIM(name), maxlen), defRootName);
 }
 
 int FsInit(int pluginNo,
@@ -77,8 +77,7 @@ HANDLE FsFindFirstW(WCHAR* path, WIN32_FIND_DATAW* fileData)
 
 	/*dir structure:
 	  /
-	  //@settings/  (pseudo-directory - lauchnes Settings dialog)
-	  bookmarked_repo_1/
+	  repo_1/
 	    branches/
 	      branch_1/
 	        files...
@@ -89,7 +88,7 @@ HANDLE FsFindFirstW(WCHAR* path, WIN32_FIND_DATAW* fileData)
 	        files...
 	      tag_2/
 	      ...
-	  bookmarked_repo_2/
+	  repo_2/
 	  ...
 	*/
 

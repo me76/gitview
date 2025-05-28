@@ -2,6 +2,8 @@
 
 #include "utils.h"
 
+#include <sysinfoapi.h>
+
 #include <algorithm>
 
 using namespace std;
@@ -30,4 +32,18 @@ void getPathHeadTail(const wchar_t* path, std::wstring& head, const wchar_t*& ta
 
 	while(L'\\' == *tail)
 		++tail;
+}
+
+LineLogger::LineLogger(std::wostream& s):
+	log( &s )
+{
+	SYSTEMTIME now;
+	GetLocalTime(&now);
+
+	tm tmNow {now.wSecond, now.wMinute, now.wHour, now.wDay, now.wMonth - 1, now.wYear - 1900};
+
+	char buf[25];
+	strftime(buf, 24, "[%F %T] ", &tmNow);
+
+	*log << str2wstr(buf);
 }

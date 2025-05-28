@@ -14,7 +14,8 @@ using namespace std;
 
 extern GitView gview;
 
-Process::IOBuf::IOBuf(HANDLE ioHandle)
+Process::IOBuf::IOBuf(const char* name, HANDLE ioHandle):
+	mName(name)
 {
 	setIoHandle(ioHandle);
 }
@@ -165,6 +166,8 @@ bool Process::InBuf::pump(int_type& pumpedChar)
 
 bool Process::InBuf::hasData() const
 {
+	if(!mIoHandle) return false;
+
 	if(gptr() && gptr() < egptr())
 		return true;
 
@@ -172,7 +175,7 @@ bool Process::InBuf::hasData() const
 	if(!PeekNamedPipe(mIoHandle, 0, 0, 0, &availableBytes, 0))
 	{
 		auto winApiError = GetLastError();
-		gview.log() << "PeekNamedPipe.Error: " << winApiError;
+		gview.log() << mName << ": PeekNamedPipe.Error: " << winApiError;
 		return false;
 	}
 
@@ -250,7 +253,10 @@ Process::IOBuf::int_type Process::OutBuf::overflow(int_type c)
 Process::Process():
 	mIn(&mProcStdInBuf),
 	mOut(&mProcStdOutBuf),
-	mErr(&mProcStdErrBuf)
+	mErr(&mProcStdErrBuf),
+	mProcStdInBuf("inBuf"),
+	mProcStdOutBuf("outBuf"),
+	mProcStdErrBuf("errBuf")
 {
 }
 

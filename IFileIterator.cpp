@@ -21,7 +21,7 @@ IFileIterator::~IFileIterator()
 	gview.log() << "deleting FileIterator @ " << this;
 }
 
-bool IFileIterator::getData(WIN32_FIND_DATAW& fileData)
+bool IFileIterator::getData(WIN32_FIND_DATAW& fileData) const
 {
 	if(!isValid()) return false;
 

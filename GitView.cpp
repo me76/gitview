@@ -5,9 +5,12 @@
 #include "FileIterator.h"
 #include "RefIterator.h"
 #include "RefTypeIterator.h"
-#include "RepoNameIterator.h"
+#include "TopDirIterator.h"
+
 #include "resource.h"
 #include "utils.h"
+
+#include <shlwapi.h>
 
 #include <boost/property_tree/json_parser.hpp>
 
@@ -21,10 +24,6 @@ using namespace std;
 
 GitView::GitView()
 {
-	if(const char* homePath = getenv("USERPROFILE"))
-	{
-		mSettings.mFallbackLogPath.assign(homePath).append("\\gitview.log");
-	}
 }
 
 void GitView::init(int pluginNo,
@@ -37,7 +36,7 @@ void GitView::init(int pluginNo,
 
 LineLogger GitView::log()
 {
-	return LineLogger(logFile);
+	return LineLogger(mLogFile);
 }
 
 bool GitView::loadSettings(const char defaultSettingsPath[MAX_PATH])
@@ -58,13 +57,12 @@ bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
 
 	if('\0' == defaultSettingsPath[lastSlashPos])
 	{
-		ofstream fallbackLog(mSettings.mFallbackLogPath, ios_base::out | ios_base::app);
-		fallbackLog << "invalid ini location '" << defaultSettingsPath << "' - cannot read the settings" << endl;
+		mInitLog << L"invalid default ini location '" << str2wstr(defaultSettingsPath) << L"' - cannot derive location of gitview settings" << endl;
 		return false;
 	}
 
 	char settingsSubpath[] = "plugins\\gitview.json";
-	constexpr size_t subpathLen = DIM( settingsSubpath );
+	constexpr size_t subpathLen = DIM(settingsSubpath);
 
 	char myIniPath[MAX_PATH + subpathLen];
 	copy(defaultSettingsPath, defaultSettingsPath + lastSlashPos + 1, myIniPath);
@@ -78,8 +76,8 @@ bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
 		settingsFile.open(myIniPath);
 		if(!settingsFile.is_open())
 		{
-			ofstream fallbackLog(mSettings.mFallbackLogPath, ios_base::out | ios_base::app);
-			fallbackLog << "Settings file " << myIniPath << " does not exist or is not accessible - cannot initialize gitview." << endl;
+			mInitLog << L"Settings file " << str2wstr(myIniPath) << L" does not exist or is not accessible - cannot initialize gitview." << endl
+			         << L"Settings file should be in TC settings folder or in 'gitview' subfolder.";
 			return false;
 		}
 	}
@@ -97,27 +95,30 @@ bool GitView::readSettings()
 		pt::json_parser::read_json(mSettingsFilePath, settings);
 	}
 	catch(std::exception& e) {
-		ofstream fallbackLog(mSettings.mFallbackLogPath, ios_base::out | ios_base::app);
-		fallbackLog << "GitView::readSettings: read_json failed: " << e.what() << endl;
+		mInitLog << L"GitView::readSettings: read_json failed: " << str2wstr(e.what()) << endl;
 		return false;
 	}
 
-	bool settingsRead = false;
 	try
 	{
 		mSettings.mLogLocation = settings.get<wstring>(L"debug.logLocation", L"");
-		if(!mSettings.mLogLocation.empty()
-		   && (logFile.open(mSettings.mLogLocation, ios_base::out | ios_base::app), logFile.is_open()))
+
+		if(mSettings.mLogLocation.empty())
 		{
-			settingsRead = true;
+			mInitLog << L"Logging is disabled (debug.logLocation setting is not set)." << endl;
+		}
+		else if(mLogFile.open(mSettings.mLogLocation, ios_base::out | ios_base::app), mLogFile.is_open())
+		{
+			mInitLog << L"Runtime logs will be available in " << mSettings.mLogLocation << L"." << endl;
+		}
+		else
+		{
+			mInitLog << L"Failed to create log file at " << mSettings.mLogLocation << L".\nInit done." << endl;
 		}
 	}
-	catch(...) { }
-
-	if(!settingsRead)
+	catch(...)
 	{
-		ofstream fallbackLog(mSettings.mFallbackLogPath, ios_base::out | ios_base::app);
-		fallbackLog << "GitView::readSettings: failed to load settings from " << (const char*) mSettings.mLogLocation.c_str() << endl;
+		mInitLog << L"Failed to create log file at " << mSettings.mLogLocation << L".\nInit done." << endl;
 	}
 
 	try
@@ -128,7 +129,18 @@ bool GitView::readSettings()
 
 		gitSettings.mGitPath = gitSettingsNode.get<wstring>(L"git", wstring());
 		if(gitSettings.mGitPath.empty())
+		{
+			mInitLog << L"Error: path to git.exe is not set." << endl;
+			log() << L"Error: path to git.exe is not set.";
 			return false;
+		}
+		else if(!PathFileExistsW(gitSettings.mGitPath.c_str()))
+		{
+			mInitLog << L"Warning: file " << gitSettings.mGitPath << " doesn't exist." << endl;
+			log() << L"Warning: file " << gitSettings.mGitPath << " doesn't exist.";
+		}
+
+		mInitLog << L"Init done.";
 
 		gitSettings.mShowCurrentBranch = gitSettingsNode.get<bool>(L"showCurrentBranch", false);
 		gitSettings.mTimeout = gitSettingsNode.get<unsigned>(L"timeoutMs", 1000);
@@ -193,16 +205,10 @@ const Repo* GitView::findRepo(const ItemKey& key) const
 
 IFileIterator* GitView::createFileIterator(const WCHAR* path)
 {
-	if(!initialized())
-	{
-		mErrorFileIterator.setError(L"no git exe");
-		return &mErrorFileIterator;
-	}
-
 	ItemKey key(path);
 	if(key.empty()) // at root level: list repositories
 	{
-		return createRepoIterator();
+		return createTopDirIterator();
 	}
 	else if(GitRef::Unknown == key.refType) // at repo level: create ref type iterator
 	{
@@ -220,9 +226,9 @@ IFileIterator* GitView::createFileIterator(const WCHAR* path)
 }
 
 
-IFileIterator* GitView::createRepoIterator()
+IFileIterator* GitView::createTopDirIterator()
 {
-	auto result = new RepoNameIterator(mRepos.repos());
+	auto result = new TopDirIterator(mRepos.repos(), mInitLog);
 	mFileIterators.insert(result);
 	return result;
 }
@@ -302,9 +308,6 @@ void GitView::removeFileIterator(HANDLE fh)
 
 void GitView::removeFileIterator(IFileIterator* fIt)
 {
-	if(&mErrorFileIterator == fIt)
-		return;
-
 	if(fIt)
 	{
 		mFileIterators.erase(fIt);
@@ -317,9 +320,18 @@ void GitView::saveFile(wchar_t* srcPath, wchar_t* destPath, OpStatus& saveStatus
 	saveStatus.clear();
 
 	if(mProgressFunc)
-		mProgressFunc( mPluginNo, srcPath, destPath, 0 );
+		mProgressFunc(mPluginNo, srcPath, destPath, 0);
 
 	ItemKey itemKey(srcPath);
+
+
+	if(initLogName == itemKey.repoName && GitRef::Unknown == itemKey.refType) //is it init.log?
+	{
+		wofstream destFile(destPath);
+		destFile << mInitLog.str();
+		return;
+	}
+
 	const Repo* repo = findRepo(itemKey);
 	if(!repo)
 	{
@@ -333,5 +345,5 @@ void GitView::saveFile(wchar_t* srcPath, wchar_t* destPath, OpStatus& saveStatus
 	git.saveFile(repo->workingDir, itemKey.branch.c_str(), itemKey.filePath.c_str(), destPath, saveStatus);
 
 	if(mProgressFunc)
-		mProgressFunc( mPluginNo, srcPath, destPath, 100 );
+		mProgressFunc(mPluginNo, srcPath, destPath, 100);
 }

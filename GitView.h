@@ -12,6 +12,7 @@
 
 #include <fstream>
 #include <set>
+#include <sstream>
 #include <string>
 
 // The following ifdef block is the standard way of creating macros which make exporting
@@ -46,10 +47,10 @@ public:
 	}
 
 	IFileIterator* createFileIterator(const WCHAR* path); //based on 'path', delegate creation to one of methods below:
-	IFileIterator* createRepoIterator(); //iterates over repo names
-	IFileIterator* createRefTypeIterator(); //iteraters over 'branches', 'tags' directories
-	IFileIterator* createRefIterator(const ItemKey& key); //iteraters over branch or tag names
-	IFileIterator* createFileIterator(const ItemKey& key); //iteraters over files in a branch/tag
+	IFileIterator* createTopDirIterator(); //produces repo names + init.log file
+	IFileIterator* createRefTypeIterator(); //produces 'branches', 'tags' directories
+	IFileIterator* createRefIterator(const ItemKey& key); //produces branch or tag names
+	IFileIterator* createFileIterator(const ItemKey& key); //produces files in a branch/tag
 
 	IFileIterator* getFileIterator(HANDLE fh);
 	void removeFileIterator(HANDLE fh);
@@ -67,7 +68,6 @@ private:
 	struct Settings
 	{
 		std::wstring mLogLocation;
-		std::string mFallbackLogPath;
 		Git::Settings mGitSettings;
 	};
 
@@ -75,7 +75,9 @@ private:
 	tProgressProcW mProgressFunc = 0;
 	tRequestProcW mRequestFunc = 0;
 
-	std::wofstream logFile;
+	std::wofstream mLogFile;
+
+	std::wstringstream mInitLog;
 
 	std::string mSettingsFilePath;
 	Settings mSettings;
@@ -86,5 +88,6 @@ public:
 	Repositories mRepos;
 
 	std::set<IFileIterator*> mFileIterators;
-	ErrorFileItStub mErrorFileIterator;
+
+	static constexpr const wchar_t* initLogName = L"init.log";
 };
