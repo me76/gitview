@@ -8,6 +8,13 @@
 
 class TopDirIterator: public IFileIterator
 {
+	enum SpecialItem
+	{
+		Item_InitLog,
+		Item_Reload,
+		Item_EndMark
+	};
+
 public:
 	TopDirIterator(const NamedRepos& repos, const std::wstringstream& initLog);
 
@@ -20,5 +27,5 @@ private:
 	RepoNameIterator mRepoNameIt;
 	const std::wstringstream& mInitLog;
 
-	bool mAtEnd = false;
+	SpecialItem currentItem = Item_InitLog;
 };

@@ -323,15 +323,22 @@ HICON GitView::getItemIcon(const WCHAR* path) const
 {
 	ItemKey itemKey(path);
 
-	if(initLogName == itemKey.repoName && GitRef::Unknown == itemKey.refType) //is it init.log?
+	if(GitRef::Unknown == itemKey.refType) //special items at top level
 	{
-		if(mHasInitErrors)
+		if(initLogName == itemKey.repoName)
 		{
-			return LoadIcon((HINSTANCE)mModule, MAKEINTRESOURCEW(IDI_ERR_FILE));
+			if(mHasInitErrors)
+			{
+				return LoadIcon((HINSTANCE)mModule, MAKEINTRESOURCEW(IDI_ERR_FILE));
+			}
+			else
+			{
+				return LoadIcon((HINSTANCE)mModule, MAKEINTRESOURCEW(IDI_INIT_OK));
+			}
 		}
-		else
+		else if(reloadName == itemKey.repoName)
 		{
-			return LoadIcon((HINSTANCE)mModule, MAKEINTRESOURCEW(IDI_INIT_OK));
+			return LoadIcon((HINSTANCE)mModule, MAKEINTRESOURCEW(IDI_RELOAD));
 		}
 	}
 
@@ -345,14 +352,10 @@ void GitView::saveFile(wchar_t* srcPath, wchar_t* destPath, OpStatus& saveStatus
 	if(mProgressFunc)
 		mProgressFunc(mPluginNo, srcPath, destPath, 0);
 
-	ItemKey itemKey(srcPath);
-
-	if(initLogName == itemKey.repoName && GitRef::Unknown == itemKey.refType) //is it init.log?
-	{
-		wofstream destFile(destPath);
-		destFile << mInitLog.str();
+	if(viewSpecialItem(srcPath, destPath))
 		return;
-	}
+
+	ItemKey itemKey(srcPath);
 
 	const Repo* repo = findRepo(itemKey);
 	if(!repo)
@@ -368,4 +371,32 @@ void GitView::saveFile(wchar_t* srcPath, wchar_t* destPath, OpStatus& saveStatus
 
 	if(mProgressFunc)
 		mProgressFunc(mPluginNo, srcPath, destPath, 100);
+}
+
+bool GitView::viewSpecialItem(const wchar_t* path, const wchar_t* tempCopyPath)
+{
+	ItemKey itemKey(path);
+
+	if(GitRef::Unknown == itemKey.refType)
+	{
+		if(initLogName == itemKey.repoName)
+		{
+			wofstream destFile( tempCopyPath );
+			destFile << mInitLog.str();
+			return true;
+		}
+		else if(reloadName == itemKey.repoName)
+		{
+			mInitLog.str(L"");
+			bool reloadOk = readSettings();
+
+			wofstream destFile(tempCopyPath);
+			destFile
+				<< (reloadOk ? L"\n\tgitview has been reloaded"
+				             : L"\n\trealoading gitview failed; check the details in init.log");
+			return true;
+		}
+	}
+
+	return false;
 }

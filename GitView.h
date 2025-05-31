@@ -66,6 +66,8 @@ private:
 
 	const Repo* findRepo(const ItemKey& key) const;
 
+	bool viewSpecialItem(const wchar_t* path, const wchar_t* tempCopyPath); //if 'path' points to special item then process it and return true
+
 private:
 	struct Settings
 	{
@@ -93,4 +95,5 @@ public:
 	std::set<IFileIterator*> mFileIterators;
 
 	static constexpr const wchar_t* initLogName = L"init.log";
+	static constexpr const wchar_t* reloadName = L"reload";
 };

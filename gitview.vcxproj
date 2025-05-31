@@ -233,6 +233,7 @@
   <ItemGroup>
     <Image Include="err_file.ico" />
     <Image Include="init_ok.ico" />
+    <Image Include="reload.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

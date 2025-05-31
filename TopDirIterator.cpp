@@ -24,30 +24,43 @@ bool TopDirIterator::getDataImpl(WIN32_FIND_DATAW& fileData) const
 	else
 	{
 		prefillFileInfo(fileData);
-		setName(fileData, GitView::initLogName);
 
-		auto logSize = const_cast<wstringstream&>(mInitLog).tellp();
-		fileData.nFileSizeHigh = logSize >> 32;
-		fileData.nFileSizeLow = (DWORD)logSize;
-		return true;
+		switch(currentItem)
+		{
+			case Item_InitLog:
+			{
+				setName(fileData, GitView::initLogName);
+
+				auto logSize = const_cast<wstringstream&>(mInitLog).tellp();
+				fileData.nFileSizeHigh = logSize >> 32;
+				fileData.nFileSizeLow = (DWORD)logSize;
+				return true;
+			}
+			case Item_Reload:
+			{
+				setName(fileData, GitView::reloadName);
+				return true;
+			}
+			default:
+				return false;
+		}
 	}
 }
 
 void TopDirIterator::nextImpl()
 {
-	if(mAtEnd) return;
-
 	if(static_cast<const IFileIterator&>(mRepoNameIt).isValid())
 	{
 		mRepoNameIt.next();
 	}
 	else
 	{
-		mAtEnd = true;
+		if(currentItem < Item_EndMark)
+			++(int&)currentItem;
 	}
 }
 
 bool TopDirIterator::isValid() const
 {
-	return !mAtEnd;
+	return currentItem != Item_EndMark;
 }
