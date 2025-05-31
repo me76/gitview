@@ -130,6 +130,25 @@ int FsFindClose(HANDLE fh)
 	return 0;
 }
 
+int FsExtractCustomIcon(char* itemPath, int extractFlags, HICON* hIcon)
+{
+	return FS_ICON_USEDEFAULT;
+}
+
+
+int FsExtractCustomIconW(WCHAR* itemPath, int extractFlags, HICON* hIcon)
+{
+	if(HICON icon = gview.getItemIcon(itemPath))
+	{
+		*hIcon = icon;
+		return FS_ICON_EXTRACTED;
+	}
+	else
+	{
+		return FS_ICON_USEDEFAULT;
+	}
+}
+
 int FsGetFileW(WCHAR* srcPath, WCHAR* destPath, int copyFlags, RemoteInfoStruct* /*remoteInfo*/)
 {
 	if(0 == copyFlags)

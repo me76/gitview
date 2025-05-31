@@ -7,10 +7,12 @@
 #include "RefTypeIterator.h"
 #include "TopDirIterator.h"
 
-#include "resource.h"
 #include "utils.h"
 
+#include "resource.h"
+
 #include <shlwapi.h>
+#include <winuser.h>
 
 #include <boost/property_tree/json_parser.hpp>
 
@@ -41,7 +43,9 @@ LineLogger GitView::log()
 
 bool GitView::loadSettings(const char defaultSettingsPath[MAX_PATH])
 {
-	return openSettingsFile(defaultSettingsPath) && readSettings();
+	mHasInitErrors = !(openSettingsFile(defaultSettingsPath) && readSettings());
+
+	return !mHasInitErrors;
 }
 
 bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
@@ -315,6 +319,25 @@ void GitView::removeFileIterator(IFileIterator* fIt)
 	}
 }
 
+HICON GitView::getItemIcon(const WCHAR* path) const
+{
+	ItemKey itemKey(path);
+
+	if(initLogName == itemKey.repoName && GitRef::Unknown == itemKey.refType) //is it init.log?
+	{
+		if(mHasInitErrors)
+		{
+			return LoadIcon((HINSTANCE)mModule, MAKEINTRESOURCEW(IDI_ERR_FILE));
+		}
+		else
+		{
+			return LoadIcon((HINSTANCE)mModule, MAKEINTRESOURCEW(IDI_INIT_OK));
+		}
+	}
+
+	return NULL;
+}
+
 void GitView::saveFile(wchar_t* srcPath, wchar_t* destPath, OpStatus& saveStatus)
 {
 	saveStatus.clear();
@@ -323,7 +346,6 @@ void GitView::saveFile(wchar_t* srcPath, wchar_t* destPath, OpStatus& saveStatus
 		mProgressFunc(mPluginNo, srcPath, destPath, 0);
 
 	ItemKey itemKey(srcPath);
-
 
 	if(initLogName == itemKey.repoName && GitRef::Unknown == itemKey.refType) //is it init.log?
 	{

@@ -192,6 +192,7 @@
     <ClInclude Include="fsplugin.h" />
     <ClInclude Include="Git.h" />
     <ClInclude Include="GitView.h" />
+    <ClInclude Include="icon_ids.h" />
     <ClInclude Include="IFileIterator.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Process.h" />
@@ -200,6 +201,7 @@
     <ClInclude Include="RepoNameIterator.h" />
     <ClInclude Include="Repositories.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="resource1.h" />
     <ClInclude Include="TopDirIterator.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
@@ -224,6 +226,13 @@
     <ClCompile Include="Repositories.cpp" />
     <ClCompile Include="TopDirIterator.cpp" />
     <ClCompile Include="utils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="gitview.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="err_file.ico" />
+    <Image Include="init_ok.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

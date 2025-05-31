@@ -56,6 +56,8 @@ public:
 	void removeFileIterator(HANDLE fh);
 	void removeFileIterator(IFileIterator* fIt);
 
+	HICON getItemIcon(const WCHAR* path) const;
+
 	void saveFile(wchar_t* srcPath, wchar_t* destPath, OpStatus& saveStatus);
 
 private:
@@ -78,6 +80,7 @@ private:
 	std::wofstream mLogFile;
 
 	std::wstringstream mInitLog;
+	bool mHasInitErrors = false;
 
 	std::string mSettingsFilePath;
 	Settings mSettings;

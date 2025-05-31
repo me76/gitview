@@ -22,4 +22,7 @@ BOOL FsFindNext(HANDLE fh, WIN32_FIND_DATA* fileData); //get next item in direct
 BOOL FsFindNextW(HANDLE fh, WIN32_FIND_DATAW* fileData);
 int FsFindClose(HANDLE fh); //called when item listing ends
 
+int FsExtractCustomIcon(char* itemPath, int extractFlags, HICON* hIcon);
+int FsExtractCustomIconW(WCHAR* itemPath, int extractFlags, HICON* hIcon);
+
 int FsGetFileW(WCHAR* srcPath, WCHAR* destPath, int copyFlags, RemoteInfoStruct* remoteInfo); //copy item content to 'destPath'

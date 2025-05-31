@@ -7,4 +7,6 @@ FsFindFirstW
 FsFindNext
 FsFindNextW
 FsFindClose
+FsExtractCustomIcon
+FsExtractCustomIconW
 FsGetFileW
