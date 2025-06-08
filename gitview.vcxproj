@@ -188,6 +188,7 @@
     <ClInclude Include="DataStructs.h" />
     <ClInclude Include="ErrorFileItStub.h" />
     <ClInclude Include="FileIterator.h" />
+    <ClInclude Include="FileIterPool.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="fsplugin.h" />
     <ClInclude Include="Git.h" />

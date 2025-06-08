@@ -2,6 +2,7 @@
 
 #include "RepoNameIterator.h"
 
+#include "FileIterPool.h"
 #include "fsplugin.h"
 #include "utils.h"
 
@@ -28,4 +29,26 @@ void RepoNameIterator::nextImpl()
 bool RepoNameIterator::isValid() const
 {
 	return mCurrent != mRepos.end();
+}
+
+// memory pool
+
+namespace {
+
+FileIterPool<RepoNameIterator, 2>& getMemoryPool()
+{
+	static FileIterPool<RepoNameIterator, 2> memPool;
+	return memPool;
+}
+
+} //local namespace
+
+void* RepoNameIterator::operator new(size_t size)
+{
+	return getMemoryPool().allocate();
+}
+
+void RepoNameIterator::operator delete(void* p)
+{
+	getMemoryPool().deallocate(p);
 }

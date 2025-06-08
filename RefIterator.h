@@ -18,4 +18,8 @@ private:
 private:
 	StringList mRefs; 
 	StringList::const_iterator mCur;
+
+public:
+	static void* operator new(size_t size);
+	static void operator delete(void* p);
 };

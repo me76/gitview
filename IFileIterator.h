@@ -7,8 +7,7 @@
 class IFileIterator
 {
 public:
-	IFileIterator();
-	virtual ~IFileIterator();
+	virtual ~IFileIterator() { }
 
 	        bool getData(WIN32_FIND_DATAW& fileData) const;
 	        bool next();

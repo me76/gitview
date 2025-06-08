@@ -2,6 +2,7 @@
 
 #include "RefTypeIterator.h"
 
+#include "FileIterPool.h"
 #include "utils.h"
 
 using namespace std;
@@ -26,4 +27,26 @@ void RefTypeIterator::nextImpl()
 bool RefTypeIterator::isValid() const
 {
 	return mCurrent < DIM(refTypes);
+}
+
+// memory pool
+
+namespace {
+
+FileIterPool<RefTypeIterator, 2>& getMemoryPool()
+{
+	static FileIterPool<RefTypeIterator, 2> memPool;
+	return memPool;
+}
+
+} //local namespace
+
+void* RefTypeIterator::operator new(size_t size)
+{
+	return getMemoryPool().allocate();
+}
+
+void RefTypeIterator::operator delete(void* p)
+{
+	getMemoryPool().deallocate(p);
 }

@@ -17,4 +17,8 @@ private:
 private:
 	const NamedRepos& mRepos;
 	NamedRepos::const_iterator mCurrent;
+
+public:
+	static void* operator new(size_t size);
+	static void operator delete(void* p);
 };

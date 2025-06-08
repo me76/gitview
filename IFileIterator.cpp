@@ -2,24 +2,11 @@
 
 #include "IFileIterator.h"
 
-#include "GitView.h"
 #include "utils.h"
 
 #include <sstream>
 
 using namespace std;
-
-extern GitView gview;
-
-IFileIterator::IFileIterator()
-{
-	gview.log() << "new FileIterator @ " << this;
-}
-
-IFileIterator::~IFileIterator()
-{
-	gview.log() << "deleting FileIterator @ " << this;
-}
 
 bool IFileIterator::getData(WIN32_FIND_DATAW& fileData) const
 {

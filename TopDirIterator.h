@@ -28,4 +28,8 @@ private:
 	const std::wstringstream& mInitLog;
 
 	SpecialItem currentItem = Item_InitLog;
+
+public:
+	static void* operator new(size_t size);
+	static void operator delete(void* p);
 };

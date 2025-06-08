@@ -16,4 +16,8 @@ private:
 	static std::string refTypes[2];
 
 	size_t mCurrent;
+
+public:
+	static void* operator new(size_t size);
+	static void operator delete(void* p);
 };

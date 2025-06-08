@@ -78,6 +78,9 @@
     <ClInclude Include="icon_ids.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FileIterPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

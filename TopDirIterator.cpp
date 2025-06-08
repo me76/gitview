@@ -2,6 +2,7 @@
 
 #include "TopDirIterator.h"
 
+#include "FileIterPool.h"
 #include "GitView.h"
 #include "RepoNameIterator.h"
 
@@ -63,4 +64,26 @@ void TopDirIterator::nextImpl()
 bool TopDirIterator::isValid() const
 {
 	return currentItem != Item_EndMark;
+}
+
+// memory pool
+
+namespace {
+
+FileIterPool<TopDirIterator, 2>& getMemoryPool()
+{
+	static FileIterPool<TopDirIterator, 2> memPool;
+	return memPool;
+}
+
+} //local namespace
+
+void* TopDirIterator::operator new(size_t size)
+{
+	return getMemoryPool().allocate();
+}
+
+void TopDirIterator::operator delete(void* p)
+{
+	getMemoryPool().deallocate(p);
 }

@@ -20,4 +20,8 @@ private:
 private:
 	Entries mEntries;
 	Entries::const_iterator mCurrent;
+
+public:
+	static void* operator new(size_t size);
+	static void operator delete(void* p);
 };

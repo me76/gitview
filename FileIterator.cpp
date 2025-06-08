@@ -2,6 +2,8 @@
 
 #include "FileIterator.h"
 
+#include "FileIterPool.h"
+
 FileIterator::FileIterator(const Entries& entries):
 	mEntries(entries),
 	mCurrent(mEntries.begin())
@@ -37,4 +39,26 @@ bool FileIterator::getDataImpl(WIN32_FIND_DATAW& fileData) const
 void FileIterator::nextImpl()
 {
 	++mCurrent;
+}
+
+// memory pool
+
+namespace {
+
+FileIterPool<FileIterator, 2>& getMemoryPool()
+{
+	static FileIterPool<FileIterator, 2> memPool;
+	return memPool;
+}
+
+} //local namespace
+
+void* FileIterator::operator new(size_t size)
+{
+	return getMemoryPool().allocate();
+}
+
+void FileIterator::operator delete(void* p)
+{
+	getMemoryPool().deallocate(p);
 }
