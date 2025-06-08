@@ -10,3 +10,5 @@ FsFindClose
 FsExtractCustomIcon
 FsExtractCustomIconW
 FsGetFileW
+FsExecuteFile
+FsExecuteFileW

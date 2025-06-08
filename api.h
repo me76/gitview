@@ -26,3 +26,6 @@ int FsExtractCustomIcon(char* itemPath, int extractFlags, HICON* hIcon);
 int FsExtractCustomIconW(WCHAR* itemPath, int extractFlags, HICON* hIcon);
 
 int FsGetFileW(WCHAR* srcPath, WCHAR* destPath, int copyFlags, RemoteInfoStruct* remoteInfo); //copy item content to 'destPath'
+
+int FsExecuteFile(HWND mainWnd, char* remoteName, char* verb);
+int FsExecuteFileW(HWND mainWnd, wchar_t* remoteName, wchar_t* verb);

@@ -48,6 +48,13 @@ bool GitView::loadSettings(const char defaultSettingsPath[MAX_PATH])
 	return !mHasInitErrors;
 }
 
+bool GitView::reloadSettings()
+{
+	mInitLog.str( L"" );
+	mHasInitErrors = !readSettings();
+	return !mHasInitErrors;
+}
+
 bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
 {
 	//look for 'plugins/gitview.json' file first, then for 'gitview.json'
@@ -387,8 +394,7 @@ bool GitView::viewSpecialItem(const wchar_t* path, const wchar_t* tempCopyPath)
 		}
 		else if(reloadName == itemKey.repoName)
 		{
-			mInitLog.str(L"");
-			bool reloadOk = readSettings();
+			bool reloadOk = reloadSettings();
 
 			wofstream destFile(tempCopyPath);
 			destFile

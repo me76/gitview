@@ -40,6 +40,7 @@ public:
 	LineLogger log();
 
 	bool loadSettings(const char defaultSettingsPath[MAX_PATH]);
+	bool reloadSettings();
 
 	bool initialized() const
 	{

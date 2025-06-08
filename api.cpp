@@ -170,3 +170,33 @@ int FsGetFileW(WCHAR* srcPath, WCHAR* destPath, int copyFlags, RemoteInfoStruct*
 
 	return saveStatus.isGood()  ? FS_FILE_OK : FS_FILE_READERROR;
 }
+
+int FsExecuteFile(HWND mainWnd, char* remoteName, char* verb)
+{
+	return FsExecuteFileW(
+		mainWnd,
+		const_cast<wchar_t*>(str2wstr(remoteName).c_str()),
+		const_cast<wchar_t*>(str2wstr(verb).c_str())
+	);
+}
+
+int FsExecuteFileW(HWND mainWnd, wchar_t* remoteName, wchar_t* verb)
+{
+	if(wcscmp(verb, L"open") == 0)
+	{
+		ItemKey itemKey(remoteName);
+		if(GitRef::Unknown == itemKey.refType && GitView::reloadName == itemKey.repoName)
+		{
+			bool reloadOk = gview.reloadSettings();
+
+			MessageBox(
+				mainWnd,
+				reloadOk ? L"Settings applied successfully." : L"Failed to apply settings.\nSee details in 'init.log' and in gitview.log.",
+				L"Reload settings",
+				MB_OK
+			);
+		}
+	}
+
+	return FS_EXEC_OK;
+}
