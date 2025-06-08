@@ -28,3 +28,8 @@ Format:
 			"logLocation": "optional log location" //if settings file cannot be read for some reason, this is logged in gitview.log file in user home directory
 		}
 	}
+
+Publishing TC plugin: https://totalcmd.net/admin76login/
+Announce updates at:
+	https://www.ghisler.ch/board/ucp.php
+	https://totalcmd.net
