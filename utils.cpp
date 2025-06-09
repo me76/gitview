@@ -15,6 +15,15 @@ wstring str2wstr(const std::string& s)
 	return result;
 }
 
+wstring str2wstr(const char* s)
+{
+	size_t len = strlen(s);
+	wstring result(len, L' ');
+	copy_n(s, len, result.begin());
+
+	return result;
+}
+
 void getPathHeadTail(const wchar_t* path, std::wstring& head, const wchar_t*& tail)
 {
 	head.clear();
@@ -35,7 +44,7 @@ void getPathHeadTail(const wchar_t* path, std::wstring& head, const wchar_t*& ta
 }
 
 LineLogger::LineLogger(std::wostream& s):
-	log( &s )
+	log(&s)
 {
 	SYSTEMTIME now;
 	GetLocalTime(&now);

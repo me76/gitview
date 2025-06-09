@@ -43,32 +43,24 @@ LineLogger GitView::log()
 
 bool GitView::loadSettings(const char defaultSettingsPath[MAX_PATH])
 {
-	mHasInitErrors = !(openSettingsFile(defaultSettingsPath) && readSettings());
-
-	return !mHasInitErrors;
+	mDefaultSettingsPath = defaultSettingsPath;
+	return reloadSettings();
 }
 
 bool GitView::reloadSettings()
 {
-	mInitLog.str( L"" );
-	mHasInitErrors = !readSettings();
+	mInitLog.str(L"");
+	mHasInitErrors = !(openSettingsFile() && readSettings());
 	return !mHasInitErrors;
 }
 
-bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
+bool GitView::openSettingsFile()
 {
 	//look for 'plugins/gitview.json' file first, then for 'gitview.json'
-	const char dirSlash = '\\';
-	size_t lastSlashPos = 0;
-	for(size_t i = 0; i < MAX_PATH && defaultSettingsPath[i]; ++i)
+	size_t lastSlashPos = mDefaultSettingsPath.find_last_of('\\');
+	if(string::npos == lastSlashPos)
 	{
-		if (dirSlash == defaultSettingsPath[i])
-			lastSlashPos = i;
-	}
-
-	if('\0' == defaultSettingsPath[lastSlashPos])
-	{
-		mInitLog << L"invalid default ini location '" << str2wstr(defaultSettingsPath) << L"' - cannot derive location of gitview settings" << endl;
+		mInitLog << L"invalid default ini location '" << str2wstr(mDefaultSettingsPath) << L"' - cannot derive location of gitview settings, something may be wrong with Total Commander installation" << endl;
 		return false;
 	}
 
@@ -76,7 +68,7 @@ bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
 	constexpr size_t subpathLen = DIM(settingsSubpath);
 
 	char myIniPath[MAX_PATH + subpathLen];
-	copy(defaultSettingsPath, defaultSettingsPath + lastSlashPos + 1, myIniPath);
+	mDefaultSettingsPath.copy(myIniPath, lastSlashPos + 1);
 	copy_n(settingsSubpath, subpathLen, myIniPath + lastSlashPos + 1);
 
 	ifstream settingsFile(myIniPath);
@@ -94,6 +86,7 @@ bool GitView::openSettingsFile(const char defaultSettingsPath[MAX_PATH])
 	}
 
 	mSettingsFilePath = myIniPath;
+	mInitLog << L"settings file found: " << str2wstr(mSettingsFilePath) << endl;
 	return true;
 }
 
@@ -118,9 +111,10 @@ bool GitView::readSettings()
 		{
 			mInitLog << L"Logging is disabled (debug.logLocation setting is not set)." << endl;
 		}
-		else if(mLogFile.open(mSettings.mLogLocation, ios_base::out | ios_base::app), mLogFile.is_open())
+		else if(mLogFile.is_open()
+		        || (mLogFile.open(mSettings.mLogLocation, ios_base::out | ios_base::app), mLogFile.is_open()))
 		{
-			mInitLog << L"Runtime logs will be available in " << mSettings.mLogLocation << L"." << endl;
+			mInitLog << L"Runtime logs & errors will be available in " << mSettings.mLogLocation << L"." << endl;
 		}
 		else
 		{
@@ -171,7 +165,7 @@ bool GitView::readSettings()
 			}
 			catch(const pt::ptree_bad_path& pathError)
 			{
-				log() << L"ERROR: setting repos." << str2wstr(pathError.path<pt::wptree::path_type>().dump()) << L" not found";
+				log() << L"ERROR: setting 'repos." << str2wstr(pathError.path<pt::wptree::path_type>().dump()) << L"' not found";
 			}
 			catch(const pt::ptree_bad_data& valueError)
 			{
@@ -181,7 +175,7 @@ bool GitView::readSettings()
 	}
 	catch(const pt::ptree_bad_path& pathError)
 	{
-		log() << L"ERROR: setting " << str2wstr(pathError.path<pt::wptree::path_type>().dump()) << L" not found";
+		log() << L"ERROR: setting '" << str2wstr(pathError.path<pt::wptree::path_type>().dump()) << L"' not found";
 	}
 	catch(const pt::ptree_bad_data& valueError)
 	{
@@ -196,9 +190,7 @@ bool GitView::readSettings()
 		log() << L"ERROR reading settings";
 	}
 
-	wstring wSettingsFile; wSettingsFile.reserve(mSettingsFilePath.size());
-	copy(mSettingsFilePath.cbegin(), mSettingsFilePath.cend(), back_inserter(wSettingsFile));
-	log() << L"Settings (" << wSettingsFile << "):"
+	log() << L"Settings (" << str2wstr(mSettingsFilePath) << "):"
 	      << L"\n  git.path: " << mSettings.mGitSettings.mGitPath
 	      << L"\n  git.timeout: " << mSettings.mGitSettings.mTimeout
 			<< L"\n  git.showCurBranch: " << boolalpha << mSettings.mGitSettings.mShowCurrentBranch;

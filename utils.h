@@ -6,6 +6,7 @@
 #define DIM(a) (sizeof(a) / sizeof(*a))
 
 std::wstring str2wstr(const std::string& s);
+std::wstring str2wstr(const char* s);
 
 template<typename TSrcChar, typename TDestChar>
 void assignFileName(TDestChar dest[MAX_PATH], const std::basic_string<TSrcChar>& src)

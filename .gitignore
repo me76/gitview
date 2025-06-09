@@ -1,5 +1,7 @@
 Debug
+Release
 x64
+gitview
 .vs
 *.vcxproj.user
 *.swp

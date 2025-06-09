@@ -62,7 +62,7 @@ public:
 	void saveFile(wchar_t* srcPath, wchar_t* destPath, OpStatus& saveStatus);
 
 private:
-	bool openSettingsFile(const char defaultSettingsPath[MAX_PATH]);
+	bool openSettingsFile();
 	bool readSettings();
 
 	const Repo* findRepo(const ItemKey& key) const;
@@ -85,6 +85,7 @@ private:
 	std::wstringstream mInitLog;
 	bool mHasInitErrors = false;
 
+	std::string mDefaultSettingsPath;
 	std::string mSettingsFilePath;
 	Settings mSettings;
 
