@@ -6,7 +6,7 @@ Plugin won't work in TC 5.5 and lower, since reading plugin settings is not avai
 ### Settings file
 Name: gitview.json, should be in same directory as wincmd.ini or in plugins/ subdirectory.
 
-Format:
+Format (don't use C-style comments in actual settings, they fill fail parsing):
 
 	{
 		"git client": {
