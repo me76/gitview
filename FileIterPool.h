@@ -7,8 +7,8 @@ class StaticMemoryPool
 {
 	struct MemBlock
 	{
-		bool mOccupied = false;
 		char mBlock[itemSize];
+		bool mOccupied = false;
 	};
 
 	std::array<MemBlock, itemCount> mPool;
