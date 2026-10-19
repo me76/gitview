@@ -30,7 +30,7 @@ ItemKey::ItemKey(const wchar_t* path)
 	}
 
 	getPathHeadTail(path, branch, path);
-	branch.erase(0, branch.find_first_not_of(L"* \t"));
+	branch.erase(0, branch.find_first_not_of(L"*+ \t")); //skip current branch and workplace branch indicators - '*' and '+'
 
 	filePath = path;
 	replace(filePath.begin(), filePath.end(), L'\\', L'/');
@@ -45,31 +45,4 @@ void Repositories::add(const std::wstring& name, const std::wstring& workingDir)
 {
 	Repo& r = mRepos[name];
 	r.workingDir = workingDir;
-}
-
-Repositories::FileIterator Repositories::getIterator(const wstring& repo,
-                                                     GitRef::Type type, const string& treeName)
-{
-	bool cached = false;
-
-	auto repoIt = mRepos.find(repo);
-	if(repoIt != mRepos.end())
-	{
-		auto treeIt = repoIt->second.refs.find(type);
-		if(treeIt != repoIt->second.refs.end())
-		{
-			//check if the hash is outdated
-			cached = true;
-		}
-	}
-
-	if(!cached)
-		cacheTree(repo, type, treeName);
-
-	return FileIterator();
-}
-
-void Repositories::cacheTree(const wstring& repo, GitRef::Type type, const string& treeName)
-{
-	;
 }

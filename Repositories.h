@@ -43,15 +43,6 @@ public:
 
 	const NamedRepos& repos() const { return mRepos; }
 
-	class FileIterator
-	{};
-
-	FileIterator getIterator(const std::wstring& repo,
-	                         GitRef::Type type, const std::string& treeName);
-
-private:
-	void cacheTree(const std::wstring& repo, GitRef::Type type, const std::string& treeName);
-
 private:
 	NamedRepos mRepos;
 };
