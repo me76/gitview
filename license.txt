@@ -1,0 +1,5 @@
+Copyright © 2022 Aram Hambardzumyan
+
+The software is created under MIT license.
+
+In addition to MIT license, if substantial part of this software is used in other project, a reference to this project should be included in final software source code and in binary distribution.
